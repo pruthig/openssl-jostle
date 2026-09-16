@@ -12,9 +12,11 @@
 package org.openssl.jostle.test.crypto;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 import org.openssl.jostle.util.Arrays;
 
 import javax.crypto.KeyGenerator;
@@ -163,6 +165,7 @@ public class KeyGeneratorInitContractTest
     @Test
     public void aNullSpecOnTheKemGeneratorsIsTypedNotAnNpe() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "PQC is unavailable in OpenSSL 3.0");
         for (String alg : new String[]{"ML-KEM-512", "X25519MLKEM768"})
         {
             try

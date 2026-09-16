@@ -17,6 +17,7 @@ import org.openssl.jostle.jcajce.provider.JostleProvider;
 import org.openssl.jostle.jcajce.provider.OpenSSLNI;
 import org.openssl.jostle.jcajce.spec.MLXKEMParameterSpec;
 import org.openssl.jostle.test.crypto.TestNISelector;
+import org.openssl.jostle.test.TestUtil;
 
 import java.security.Provider;
 import java.security.Security;
@@ -104,7 +105,8 @@ public class BaseCapabilityGateTest
         // Says no to a REAL name under the wrong operation type. This is the
         // discriminating control: an ML-KEM key type exists, an ML-KEM cipher
         // does not, so the answer cannot come from name recognition alone.
-        Assertions.assertEquals(1, ni.canFetch(OpenSSLNI.OP_KEYMGMT, "ML-KEM-768"));
+        Assertions.assertEquals(TestUtil.supportsOpenSSL35Features() ? 1 : 0,
+                ni.canFetch(OpenSSLNI.OP_KEYMGMT, "ML-KEM-768"));
         Assertions.assertEquals(0, ni.canFetch(OpenSSLNI.OP_CIPHER, "ML-KEM-768"));
 
         // And yes to a name that really is a cipher, so the op type is not
@@ -155,8 +157,11 @@ public class BaseCapabilityGateTest
                 open++;
             }
         }
-        Assertions.assertTrue(open > 0,
-                "no gated family is available at all; the gate was not exercised");
+        if (TestUtil.supportsOpenSSL35Features())
+        {
+            Assertions.assertTrue(open > 0,
+                    "no gated family is available at all; the gate was not exercised");
+        }
     }
 
     /**
@@ -200,7 +205,10 @@ public class BaseCapabilityGateTest
         }
 
         Assertions.assertTrue(failures.isEmpty(), String.join("\n", failures));
-        Assertions.assertTrue(checked > 0, "no gated service was checked");
+        if (TestUtil.supportsOpenSSL35Features())
+        {
+            Assertions.assertTrue(checked > 0, "no gated service was checked");
+        }
     }
 
     private static Object jceLookup(String type, String alg) throws Exception

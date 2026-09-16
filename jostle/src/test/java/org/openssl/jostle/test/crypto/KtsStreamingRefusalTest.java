@@ -16,9 +16,11 @@ import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
 import org.bouncycastle.jcajce.spec.KTSParameterSpec;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -126,6 +128,7 @@ public class KtsStreamingRefusalTest
     @Test
     public void mlKemKtsHasNoStreamingSurface() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "ML-KEM is unavailable in OpenSSL 3.0");
         KeyPair kp = mlKemPair();
         assertNoStreamingSurface("ML-KEM", kp);
         assertEncryptModeRefused("ML-KEM", kp, "ML-KEM KTS cipher only supports WRAP_MODE/UNWRAP_MODE");

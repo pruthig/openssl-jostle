@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
 import org.openssl.jostle.test.util.ServiceClassNameAudit;
+import org.openssl.jostle.test.TestUtil;
 
 import java.security.Security;
 
@@ -47,6 +48,7 @@ public class ServiceClassNameParityTest
     public void everyRegisteredClassNameNamesItsOwnClass()
     {
         ServiceClassNameAudit.assertEveryClassNameNamesItsOwnClass(
-                Security.getProvider(JostleProvider.PROVIDER_NAME), FLOOR);
+                Security.getProvider(JostleProvider.PROVIDER_NAME),
+                TestUtil.supportsOpenSSL35Features() ? FLOOR : 250);
     }
 }

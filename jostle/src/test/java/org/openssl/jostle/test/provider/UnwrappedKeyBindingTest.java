@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.interfaces.OSSLKey;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 import org.openssl.jostle.util.Arrays;
 
 import javax.crypto.Cipher;
@@ -79,6 +80,15 @@ public class UnwrappedKeyBindingTest
      */
     private static final String[] TRANSFORMS =
             {"AESWrapPad", "RSA/ECB/OAEPPadding", "RSA/ECB/PKCS1Padding"};
+
+    private static String[] supportedTransforms()
+    {
+        if (TestUtil.supportsOpenSSL32Features())
+        {
+            return TRANSFORMS;
+        }
+        return new String[]{"AESWrapPad"};
+    }
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -166,7 +176,7 @@ public class UnwrappedKeyBindingTest
     @Test
     public void unwrappedPublicKeyIsBoundToTheUnwrappingProvider() throws Exception
     {
-        for (String t : TRANSFORMS)
+        for (String t : supportedTransforms())
         {
             KeyPair kp = payload();
             byte[] wrapped = wrapper(t).wrap(kp.getPublic());
@@ -183,7 +193,7 @@ public class UnwrappedKeyBindingTest
     @Test
     public void unwrappedPrivateKeyIsBoundAndImmediatelyUsableInThatProvider() throws Exception
     {
-        for (String t : TRANSFORMS)
+        for (String t : supportedTransforms())
         {
             KeyPair kp = payload();
             byte[] wrapped = wrapper(t).wrap(kp.getPrivate());
@@ -247,7 +257,7 @@ public class UnwrappedKeyBindingTest
     @Test
     public void unwrappedSecretKeyStaysAnUnboundSecretKeySpec() throws Exception
     {
-        for (String t : TRANSFORMS)
+        for (String t : supportedTransforms())
         {
             byte[] raw = new byte[32];
             RANDOM.nextBytes(raw);
@@ -288,7 +298,7 @@ public class UnwrappedKeyBindingTest
                         + "already resolves to JSL, so this test cannot distinguish the fixed "
                         + "code from the broken code");
 
-        for (String t : TRANSFORMS)
+        for (String t : supportedTransforms())
         {
             KeyPair kp = payload();
             byte[] wrapped = wrapper(t).wrap(kp.getPublic());
@@ -321,7 +331,7 @@ public class UnwrappedKeyBindingTest
         Assertions.assertNull(jsl.getService("KeyFactory", "NoSuchKeyAlgorithm"),
                 "the sentinel algorithm must not actually be served");
 
-        for (String t : TRANSFORMS)
+        for (String t : supportedTransforms())
         {
             byte[] garbage = new byte[t.startsWith("RSA") ? 256 : 40];
             RANDOM.nextBytes(garbage);
@@ -381,7 +391,7 @@ public class UnwrappedKeyBindingTest
                 borrowable + " resolves to JSL after all");
 
         final String alg = borrowable;
-        for (String t : TRANSFORMS)
+        for (String t : supportedTransforms())
         {
             byte[] garbage = new byte[t.startsWith("RSA") ? 256 : 40];
             RANDOM.nextBytes(garbage);

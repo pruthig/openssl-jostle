@@ -19,10 +19,12 @@ import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
 import org.bouncycastle.crypto.digests.SHAKEDigest;
 import org.bouncycastle.jcajce.spec.KTSParameterSpec;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
 import org.openssl.jostle.util.Arrays;
+import org.openssl.jostle.test.TestUtil;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -154,6 +156,7 @@ public class KtsKdfDigestPinTest
     @Test
     public void bothCiphersAcceptExactlyFourDigests() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "ML-KEM is unavailable in OpenSSL 3.0");
         // An emptied table would make the loops iterate nothing and the cell
         // pass on no evidence.
         Assertions.assertEquals(4, ACCEPTED.length, "four digests are accepted");
@@ -192,6 +195,7 @@ public class KtsKdfDigestPinTest
     @Test
     public void everyAcceptedDigestWrapsAndUnwrapsOnBothCiphers() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "ML-KEM is unavailable in OpenSSL 3.0");
         for (String transformation : CIPHERS)
         {
             KeyPair kp = pairFor(transformation);

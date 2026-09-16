@@ -39,6 +39,7 @@ import org.bouncycastle.crypto.params.KDFParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
@@ -50,6 +51,7 @@ import org.openssl.jostle.jcajce.spec.SSKDFParameterSpec;
 import org.openssl.jostle.jcajce.spec.ScryptKeySpec;
 import org.openssl.jostle.util.Arrays;
 import org.openssl.jostle.util.Strings;
+import org.openssl.jostle.test.TestUtil;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -500,6 +502,8 @@ public class KDFAgreementTest
     @Test
     public void kbkdfCounterAgreesWithBouncyCastle() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(),
+                "variable KBKDF counter widths are unavailable in OpenSSL 3.0");
         SecureRandom sr = seededRandom("kbkdfCounterAgreesWithBouncyCastle");
         int[] rValues = {8, 16, 24, 32};
 
@@ -730,6 +734,7 @@ public class KDFAgreementTest
     @Test
     public void argon2AgreesWithBouncyCastle() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "Argon2 is unavailable in OpenSSL 3.0");
         SecureRandom sr = seededRandom("argon2AgreesWithBouncyCastle");
 
         for (String alg : ARGON2_ALGS)

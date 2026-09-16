@@ -11,11 +11,13 @@
 package org.openssl.jostle.test.spec;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.interfaces.OSSLKey;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
 import org.openssl.jostle.jcajce.spec.PKEYKeySpec;
+import org.openssl.jostle.test.TestUtil;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -51,6 +53,8 @@ public class KeySpecBindingTest
     @BeforeAll
     static void before()
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(),
+                "ML-KEM key binding is unavailable in OpenSSL 3.0");
         if (Security.getProvider(JostleProvider.PROVIDER_NAME) == null)
         {
             Security.addProvider(new JostleProvider());

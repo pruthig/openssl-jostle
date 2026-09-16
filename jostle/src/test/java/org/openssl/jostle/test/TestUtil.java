@@ -11,6 +11,7 @@
 
 package org.openssl.jostle.test;
 
+import org.openssl.jostle.CryptoServicesRegistrar;
 import org.openssl.jostle.jcajce.provider.fips.JostleFIPSProvider;
 import org.openssl.jostle.rand.RandSource;
 
@@ -21,6 +22,22 @@ public class TestUtil
 {
 
     public static final TestRandSource RNDSrc = new TestRandSource();
+
+    public static boolean supportsOpenSSL35Features()
+    {
+        String version = new CryptoServicesRegistrar().getOpenSSLVersion();
+        return version != null && version.matches("(?:OpenSSL )?3\\.(?:[5-9]|[1-9][0-9]).*");
+    }
+
+    /**
+     * Whether the linked OpenSSL provider supports RSA PKCS#1 implicit
+     * rejection, introduced in OpenSSL 3.2.
+     */
+    public static boolean supportsOpenSSL32Features()
+    {
+        String version = new CryptoServicesRegistrar().getOpenSSLVersion();
+        return version != null && version.matches("(?:OpenSSL )?3\\.(?:[2-9]|[1-9][0-9]).*");
+    }
 
     /**
      * Environment variable naming the OpenSSL FIPS provider module for tests:

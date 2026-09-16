@@ -8,6 +8,7 @@
 #ifndef ASN1_UTIL_H
 #define ASN1_UTIL_H
 #include <openssl/types.h>
+#include <stddef.h>
 
 #include "key_spec.h"
 

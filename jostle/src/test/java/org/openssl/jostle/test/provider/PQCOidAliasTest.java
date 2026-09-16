@@ -11,9 +11,11 @@
 package org.openssl.jostle.test.provider;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 
 import java.security.KeyFactory;
 import java.security.Provider;
@@ -50,6 +52,7 @@ public class PQCOidAliasTest
     @BeforeAll
     static void before()
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "PQC is unavailable in OpenSSL 3.0");
         if (Security.getProvider(JostleProvider.PROVIDER_NAME) == null)
         {
             Security.addProvider(new JostleProvider());

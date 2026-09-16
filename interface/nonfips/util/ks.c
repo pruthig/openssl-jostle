@@ -15,6 +15,7 @@
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
+#include <openssl/opensslv.h>
 #include <openssl/pkcs12.h>
 #include <openssl/pkcs7.h>
 #include <openssl/x509.h>
@@ -368,8 +369,13 @@ static int32_t load_cert_bag(ks_ctx *ctx, const char *alias, PKCS12_SAFEBAG *bag
         return JO_SUCCESS;
     }
 
-    X509 *cert = PKCS12_SAFEBAG_get1_cert_ex(bag,
+    X509 *cert;
+#if OPENSSL_VERSION_PREREQ(3, 5)
+    cert = PKCS12_SAFEBAG_get1_cert_ex(bag,
             get_global_jostle_ossl_lib_ctx(), NULL);
+#else
+    cert = PKCS12_SAFEBAG_get1_cert(bag);
+#endif
     if (cert == NULL) {
         return JO_KS_LOAD_FAILED;
     }
@@ -844,10 +850,15 @@ int32_t ks_store(ks_ctx *ctx, uint8_t **out, size_t *out_len,
          * length MUST be explicit -- PKCS12_set_pbmac1_pbkdf2 does not default
          * it the way PKCS12_set_mac does.
          */
+#if OPENSSL_VERSION_PREREQ(3, 5)
         if (!PKCS12_set_pbmac1_pbkdf2(p12, pass, pass_len, NULL,
                 PKCS12_SALT_LEN, mac_iter, mac_md, "SHA256")) {
             goto end;
         }
+#else
+        /* OpenSSL 3.0 has no PBMAC1 encoder. */
+        goto end;
+#endif
     }
     /* KS_MAC_NONE: no integrity MAC (AES-GCM content is self-authenticating). */
 

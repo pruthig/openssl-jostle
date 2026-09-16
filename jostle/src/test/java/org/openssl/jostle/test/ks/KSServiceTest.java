@@ -106,6 +106,12 @@ public class KSServiceTest
     public void privateKeyRoundTrip(KeyCase keyCase)
         throws Exception
     {
+        if (keyCase.algorithm.equals("MLDSA") || keyCase.algorithm.equals("MLKEM")
+                || keyCase.algorithm.equals("SLHDSA"))
+        {
+            org.junit.jupiter.api.Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(),
+                    "PQC is unavailable in OpenSSL 3.0");
+        }
         KeyStore keyStore = KeyStore.getInstance("PKCS12", JostleProvider.PROVIDER_NAME);
         keyStore.load(null, null);
 

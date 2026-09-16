@@ -830,6 +830,9 @@ public class EdDSATest
     @Test
     public void testSignJostleVerifyBCEd25519Ctx() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "Ed25519ctx is unavailable in OpenSSL 3.0");
         SecureRandom sr = seededRandom("testSignJostleVerifyBCEd25519Ctx");
 
         byte[] message = new byte[1025];
@@ -898,6 +901,9 @@ public class EdDSATest
     @Test
     public void testSignJostleVerifyBCEd25519phCtx() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "Ed25519ph/ctx is unavailable in OpenSSL 3.0");
         SecureRandom sr = seededRandom("testSignJostleVerifyBCEd25519phCtx");
         byte[] message = new byte[1025];
         sr.nextBytes(message);
@@ -980,6 +986,9 @@ public class EdDSATest
     @Test
     public void testSignJostleVerifyBCEd448phCtx() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "Ed448ph/ctx is unavailable in OpenSSL 3.0");
         SecureRandom sr = seededRandom("testSignJostleVerifyBCEd448phCtx");
         byte[] message = new byte[1025];
         sr.nextBytes(message);
@@ -1180,6 +1189,9 @@ public class EdDSATest
     @Test
     public void testContextOnED448_RoundTrips() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "Ed448ctx is unavailable in OpenSSL 3.0");
         // Pure Ed448 takes a context (RFC 8032 §5.2 — SigEd448 always carries
         // one, default empty), unlike pure Ed25519. The forced "Ed448"
         // transformation must sign/verify with a ContextParameterSpec and bind
@@ -1219,6 +1231,9 @@ public class EdDSATest
     @Test
     public void testEd448ContextAgreesWithBC() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "Ed448ctx is unavailable in OpenSSL 3.0");
         // Cross-validate pure Ed448 + context against BouncyCastle's low-level
         // Ed448Signer (BC's JCE surface has no pure-Ed448-with-context path).
         // Both directions, random key / context / message.
@@ -1588,6 +1603,9 @@ public class EdDSATest
     @Test
     public void testSetParameterNull() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "Ed25519ph null-context override is unavailable in OpenSSL 3.0");
         SecureRandom sr = seededRandom("testSetParameterNull");
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("EdDSA", JostleProvider.PROVIDER_NAME);
         kpg.initialize(EdDSAParameterSpec.ED25519);
@@ -1817,12 +1835,18 @@ public class EdDSATest
     @Test
     public void testForeignKeyInterop_BC_Ed25519() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "BC Ed private-key import is unavailable in OpenSSL 3.0");
         runForeignKeyInterop("Ed25519");
     }
 
     @Test
     public void testForeignKeyInterop_BC_Ed448() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "BC Ed private-key import is unavailable in OpenSSL 3.0");
         runForeignKeyInterop("Ed448");
     }
 
@@ -1885,6 +1909,9 @@ public class EdDSATest
     @Test
     public void testKeyFactory_translateForeignEdKey_BC() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "BC Ed private-key import is unavailable in OpenSSL 3.0");
         KeyPairGenerator bcKpg = KeyPairGenerator.getInstance("Ed25519", BouncyCastleProvider.PROVIDER_NAME);
         KeyPair bcKp = bcKpg.generateKeyPair();
 

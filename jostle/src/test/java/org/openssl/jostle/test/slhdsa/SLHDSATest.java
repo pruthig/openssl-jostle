@@ -13,9 +13,11 @@ package org.openssl.jostle.test.slhdsa;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 import org.openssl.jostle.jcajce.provider.slhdsa.SLHDSAKeyPairGenerator;
 import org.openssl.jostle.jcajce.spec.ContextParameterSpec;
 import org.openssl.jostle.jcajce.spec.SLHDSAParameterSpec;
@@ -107,6 +109,7 @@ public class SLHDSATest
     @BeforeAll
     public static void before()
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "SLH-DSA is unavailable in OpenSSL 3.0");
         synchronized (JostleProvider.class)
         {
             if (Security.getProvider(JostleProvider.PROVIDER_NAME) == null)

@@ -13,11 +13,13 @@ package org.openssl.jostle.test.kdf;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
 import org.openssl.jostle.jcajce.spec.Argon2KeySpec;
 import org.openssl.jostle.util.Arrays;
+import org.openssl.jostle.test.TestUtil;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -69,6 +71,7 @@ public class Argon2Test
     @BeforeAll
     static void before()
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "Argon2 is unavailable in OpenSSL 3.0");
         if (Security.getProvider(JSL) == null)
         {
             Security.addProvider(new JostleProvider());

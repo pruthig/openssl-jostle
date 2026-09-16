@@ -15,11 +15,13 @@ import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.util.ASN1Dump;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.SecretKeyWithEncapsulation;
 import org.openssl.jostle.jcajce.interfaces.MLKEMPrivateKey;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 import org.openssl.jostle.jcajce.provider.mlkem.MLKEMKeyPairGenerator;
 import org.openssl.jostle.jcajce.spec.KEMExtractSpec;
 import org.openssl.jostle.jcajce.spec.KEMGenerateSpec;
@@ -91,6 +93,7 @@ public class MLKEMTest
     @BeforeAll
     public static void before()
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "ML-KEM is unavailable in OpenSSL 3.0");
         synchronized (JostleProvider.class)
         {
             if (Security.getProvider(JostleProvider.PROVIDER_NAME) == null)

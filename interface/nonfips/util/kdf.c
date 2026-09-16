@@ -232,7 +232,12 @@ int32_t jo_kbkdf(
     if (seed != NULL && seed_len > 0) {
         params[idx++] = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SEED, seed, seed_len);
     }
+#ifdef JOSTLE_OPENSSL_HAS_KBKDF_R
     params[idx++] = OSSL_PARAM_construct_int(OSSL_KDF_PARAM_KBKDF_R, &r);
+#else
+    /* OpenSSL 3.0 uses its fixed/default 32-bit KBKDF counter width. */
+    (void) r;
+#endif
     params[idx++] = OSSL_PARAM_construct_int(OSSL_KDF_PARAM_KBKDF_USE_L, &use_l);
     params[idx++] = OSSL_PARAM_construct_int(OSSL_KDF_PARAM_KBKDF_USE_SEPARATOR, &use_separator);
     params[idx++] = OSSL_PARAM_construct_end();
@@ -381,4 +386,3 @@ exit:
     EVP_KDF_CTX_free(kctx);
     return ret;
 }
-

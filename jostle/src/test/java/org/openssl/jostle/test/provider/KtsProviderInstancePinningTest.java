@@ -151,6 +151,9 @@ public class KtsProviderInstancePinningTest
     @Test
     public void mlkemKts_kdfDigestComesFromTheOuterInstance() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "ML-KEM is unavailable in OpenSSL 3.0");
         digestPinIsOnTheInstance("ML-KEM", mlkemKek());
     }
 
@@ -163,6 +166,9 @@ public class KtsProviderInstancePinningTest
     @Test
     public void mlkemKts_aesKeyWrapComesFromTheOuterInstance() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "ML-KEM is unavailable in OpenSSL 3.0");
         keyWrapPinIsOnTheInstance("ML-KEM", mlkemKek());
     }
 
@@ -219,6 +225,9 @@ public class KtsProviderInstancePinningTest
     @Test
     public void aFullyCapableOuterInstanceWraps() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "ML-KEM is unavailable in OpenSSL 3.0");
         Assertions.assertNotNull(wrapThrough(new JostleProvider(), "ML-KEM", mlkemKek()));
         Assertions.assertNotNull(
                 wrapThrough(new JostleProvider(), "RSA-KTS-KEM-KWS", rsaKek()));
@@ -340,6 +349,9 @@ public class KtsProviderInstancePinningTest
     @Test
     public void mlkemKts_unwrappedPrivateKeyIsBoundToTheOuterInstance() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "ML-KEM is unavailable in OpenSSL 3.0");
         unwrappedKeyIsBoundToTheOuterInstance("ML-KEM", mlkemKek());
     }
 
@@ -388,6 +400,9 @@ public class KtsProviderInstancePinningTest
     public void anUnwrappedPrivateKeyWorksImmediatelyInTheInstanceThatUnwrappedIt()
             throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "ML-KEM is unavailable in OpenSSL 3.0");
         Provider outer = new JostleProvider();
         KeyPair kek = keyPair(outer, mlkemKek());
         KeyPair payload = eightAlignedRsaKeyPair(outer);
@@ -432,6 +447,9 @@ public class KtsProviderInstancePinningTest
     @Test
     public void unwrappedSecretKeyStaysAnUnboundSecretKeySpec() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "ML-KEM is unavailable in OpenSSL 3.0");
         Provider outer = new JostleProvider();
         KeyPair kek = keyPair(outer, mlkemKek());
 

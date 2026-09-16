@@ -25,9 +25,11 @@ import org.bouncycastle.asn1.x509.TBSCertificate;
 import org.bouncycastle.asn1.x509.Time;
 import org.bouncycastle.asn1.x509.V1TBSCertificateGenerator;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 import org.openssl.jostle.util.Arrays;
 
 import java.io.ByteArrayInputStream;
@@ -228,6 +230,7 @@ public class X509CertificateFactoryTest
     @Test
     public void testMldsaCert_publicKeyIsJslAndVerifiesSelfSignature() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "PQC is unavailable in OpenSSL 3.0");
         KeyPair kp = KeyPairGenerator.getInstance("ML-DSA-44", JostleProvider.PROVIDER_NAME).generateKeyPair();
         byte[] der = buildPqcCert(kp.getPublic().getEncoded(), "ML-DSA-44",
                 "2.16.840.1.101.3.4.3.17", kp.getPrivate());
@@ -242,6 +245,7 @@ public class X509CertificateFactoryTest
     @Test
     public void testSlhdsaCert_publicKeyIsJslAndVerifiesSelfSignature() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "PQC is unavailable in OpenSSL 3.0");
         KeyPair kp = KeyPairGenerator.getInstance("SLH-DSA-SHA2-128F", JostleProvider.PROVIDER_NAME).generateKeyPair();
         byte[] der = buildPqcCert(kp.getPublic().getEncoded(), "SLH-DSA-SHA2-128F",
                 "2.16.840.1.101.3.4.3.21", kp.getPrivate());
@@ -256,6 +260,7 @@ public class X509CertificateFactoryTest
     @Test
     public void testMlkemCert_publicKeyResolvedThroughJslByOid() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "PQC is unavailable in OpenSSL 3.0");
         // ML-KEM is a KEM, not a signature scheme: the cert carries an ML-KEM
         // subject key but is signed by an ML-DSA CA. The subject key must still
         // be re-derived through the JSL KeyFactory keyed on the ML-KEM SPKI OID

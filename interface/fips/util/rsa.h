@@ -8,6 +8,7 @@
 
 #ifndef RSA_H
 #define RSA_H
+#include <stddef.h>
 #include <stdint.h>
 
 #include "key_spec.h"

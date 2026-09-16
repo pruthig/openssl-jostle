@@ -27,11 +27,13 @@ import org.bouncycastle.crypto.params.KDFParameters;
 import org.bouncycastle.jcajce.spec.KTSParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
 import org.openssl.jostle.jcajce.provider.kts.KtsKdf;
 import org.openssl.jostle.util.Arrays;
+import org.openssl.jostle.test.TestUtil;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -178,6 +180,7 @@ public class KtsKdfAgreementTest
     @Test
     public void mlKemKtsAgreesWithBouncyCastleOnEveryKdfBothDirections() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "ML-KEM is unavailable in OpenSSL 3.0");
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("ML-KEM-768", JSL);
         KeyPair kp = kpg.generateKeyPair();
         byte[] pub = kp.getPublic().getEncoded();

@@ -14,9 +14,11 @@ import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.jcajce.spec.KTSParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 import org.openssl.jostle.util.Arrays;
 
 import javax.crypto.Cipher;
@@ -150,6 +152,7 @@ public class KtsWrapNameTest
     @Test
     public void aesKwpIsHonouredOnMlKemAndAgreesWithBouncyCastle() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "ML-KEM is unavailable in OpenSSL 3.0");
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("ML-KEM-768", JSL);
         KeyPair kp = kpg.generateKeyPair();
         KeyFactory bcKf = KeyFactory.getInstance("ML-KEM-768", BC);
@@ -286,6 +289,7 @@ public class KtsWrapNameTest
     @Test
     public void unsupportedNameIsRefusedTypedAtInitOnMlKemToo() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "ML-KEM is unavailable in OpenSSL 3.0");
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("ML-KEM-768", JSL);
         KeyPair kp = kpg.generateKeyPair();
         for (String name : new String[]{"NOSUCHWRAP", "ARIA", "AESWrapPad"})

@@ -13,9 +13,11 @@ package org.openssl.jostle.test.parity;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.spec.IvParameterSpec;
@@ -123,6 +125,8 @@ public class KeyGeneratorNegativePathSurveyTest
     @BeforeAll
     public static void setUp()
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(),
+                "the complete KeyGenerator survey requires the OpenSSL 3.5 PQC surface");
         jsl = Security.getProvider(JostleProvider.PROVIDER_NAME);
         if (jsl == null)
         {

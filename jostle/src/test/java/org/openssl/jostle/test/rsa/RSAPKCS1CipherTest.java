@@ -13,9 +13,12 @@ package org.openssl.jostle.test.rsa;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 import org.openssl.jostle.util.Arrays;
 
 import javax.crypto.Cipher;
@@ -35,6 +38,13 @@ import java.security.Security;
  */
 public class RSAPKCS1CipherTest
 {
+    @BeforeEach
+    public void requirePkcs1DecryptSupport()
+    {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL32Features(),
+                "RSA PKCS#1 private-key decrypt is unavailable before OpenSSL 3.2");
+    }
+
     private static final SecureRandom RANDOM = new SecureRandom();
     private static KeyPair sharedKeyPair;
 
@@ -62,6 +72,8 @@ public class RSAPKCS1CipherTest
     @Test
     public void testPKCS1_RoundTrip() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL32Features(),
+                "RSA PKCS#1 private-key decrypt is unavailable before OpenSSL 3.2");
         byte[] msg = randomMessage(64);
         Cipher enc = Cipher.getInstance("RSA/ECB/PKCS1Padding", JostleProvider.PROVIDER_NAME);
         enc.init(Cipher.ENCRYPT_MODE, sharedKeyPair.getPublic());
@@ -208,6 +220,9 @@ public class RSAPKCS1CipherTest
     @Test
     public void testPKCS1_ImplicitRejection_HardGuard() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL32Features(),
+                "RSA implicit rejection is unavailable before OpenSSL 3.2");
         byte[] original = new byte[]{0x11, 0x22, 0x33, 0x44};
 
         Cipher enc = Cipher.getInstance("RSA/ECB/PKCS1Padding", JostleProvider.PROVIDER_NAME);

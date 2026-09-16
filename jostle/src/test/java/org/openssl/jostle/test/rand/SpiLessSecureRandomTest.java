@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
 import org.openssl.jostle.jcajce.spec.MLKEMParameterSpec;
 import org.openssl.jostle.rand.DefaultRandSource;
+import org.openssl.jostle.test.TestUtil;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -139,16 +140,19 @@ public class SpiLessSecureRandomTest
         check(failures, nonCompletions, "KeyPairGenerator Ed25519", new SizeCase("Ed25519", 255));
         check(failures, nonCompletions, "KeyPairGenerator X25519", new SizeCase("X25519", 255));
 
-        // Reaches the SECOND site: DefaultRandSource.strengthOf, via the PQC
-        // strength gate rather than via replaceWith.
-        check(failures, nonCompletions, "KeyPairGenerator ML-KEM-768 (strengthOf)", new Case()
+        if (TestUtil.supportsOpenSSL35Features())
         {
-            public void run(SecureRandom r) throws Exception
+            // Reaches the SECOND site: DefaultRandSource.strengthOf, via the
+            // PQC strength gate rather than via replaceWith.
+            check(failures, nonCompletions, "KeyPairGenerator ML-KEM-768 (strengthOf)", new Case()
             {
-                KeyPairGenerator k = KeyPairGenerator.getInstance("ML-KEM-768", jsl);
-                k.initialize(MLKEMParameterSpec.ml_kem_768, r);
-            }
-        });
+                public void run(SecureRandom r) throws Exception
+                {
+                    KeyPairGenerator k = KeyPairGenerator.getInstance("ML-KEM-768", jsl);
+                    k.initialize(MLKEMParameterSpec.ml_kem_768, r);
+                }
+            });
+        }
 
         // Not only KeyPairGenerator: signing takes a caller random too.
         check(failures, nonCompletions, "Signature.initSign SHA256withECDSA", new Case()

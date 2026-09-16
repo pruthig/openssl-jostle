@@ -13,6 +13,7 @@
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
+#include <openssl/opensslv.h>
 #include <openssl/params.h>
 #include <openssl/rsa.h>
 
@@ -149,6 +150,7 @@ int32_t rsa_pkcs1_init(rsa_pkcs1_ctx *ctx, const key_spec *key,
     // the loaded module lacks the parameter).
     // ============================================================
     if (op_mode == RSA_PKCS1_OP_DECRYPT) {
+#if OPENSSL_VERSION_PREREQ(3, 2)
         const OSSL_PARAM *settable = EVP_PKEY_CTX_settable_params(pctx);
         if (OPS_FAILED_INIT_1 settable == NULL
             || OSSL_PARAM_locate_const(
@@ -166,6 +168,10 @@ int32_t rsa_pkcs1_init(rsa_pkcs1_ctx *ctx, const key_spec *key,
             ret_code = JO_OPENSSL_ERROR OPS_OFFSET_OPENSSL_ERROR_4(2111);
             goto exit;
         }
+#else
+        ret_code = JO_IMPLICIT_REJECTION_UNAVAILABLE;
+        goto exit;
+#endif
     }
 
     ctx->pctx = pctx;

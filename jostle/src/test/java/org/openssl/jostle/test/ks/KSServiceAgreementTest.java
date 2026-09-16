@@ -25,11 +25,13 @@ import org.bouncycastle.pkcs.jcajce.JcaPKCS12SafeBagBuilder;
 import org.bouncycastle.pkcs.jcajce.JcePKCS12MacCalculatorBuilder;
 import org.bouncycastle.pkcs.jcajce.JcePKCSPBEOutputEncryptorBuilder;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -76,6 +78,11 @@ public class KSServiceAgreementTest
     public void jostleWritesBouncyCastleReads(String type)
         throws Exception
     {
+        if ("PKCS12-PBMAC1".equals(type))
+        {
+            Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(),
+                    "PBMAC1 encoding is unavailable in OpenSSL 3.0");
+        }
         for (int trial = 0; trial < TRIALS; trial++)
         {
             char[] password = ("agree-jostle-" + trial).toCharArray();

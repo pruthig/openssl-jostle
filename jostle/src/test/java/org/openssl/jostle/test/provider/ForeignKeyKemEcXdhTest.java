@@ -111,6 +111,9 @@ public class ForeignKeyKemEcXdhTest
     @Test
     public void mlkemKts_certPublicKey_wrapUnwrapRoundTrips() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "ML-KEM is unavailable in OpenSSL 3.0");
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("ML-KEM-768", JSL);
         KeyPair kp = kpg.generateKeyPair();
         PublicKey certPub = certOver(kp.getPublic()).getPublicKey();
@@ -137,6 +140,9 @@ public class ForeignKeyKemEcXdhTest
     @Test
     public void mlkemKts_nonMlkemKey_stillRejected() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "ML-KEM is unavailable in OpenSSL 3.0");
         KeyPairGenerator rsaKpg = KeyPairGenerator.getInstance("RSA", JSL);
         rsaKpg.initialize(2048);
         PublicKey rsaPub = rsaKpg.generateKeyPair().getPublic();

@@ -8,6 +8,7 @@
 
 #ifndef EC_H
 #define EC_H
+#include <stddef.h>
 #include <stdint.h>
 
 #include "key_spec.h"

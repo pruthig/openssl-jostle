@@ -15,6 +15,7 @@
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
+#include <openssl/opensslv.h>
 #include <openssl/params.h>
 #include <openssl/param_build.h>
 
@@ -77,9 +78,14 @@ static int32_t classify_dsa_gen_failure(EVP_PKEY_CTX *ctx, int32_t generic) {
 
     ERR_set_mark();
     const OSSL_PARAM *settable = EVP_PKEY_CTX_settable_params(ctx);
-    int gated = settable != NULL
-                && OSSL_PARAM_locate_const(settable,
-                                           OSSL_PKEY_PARAM_FIPS_SIGN_CHECK) != NULL;
+    int gated = 0;
+#if OPENSSL_VERSION_PREREQ(3, 2)
+    gated = settable != NULL
+            && OSSL_PARAM_locate_const(settable,
+                                       OSSL_PKEY_PARAM_FIPS_SIGN_CHECK) != NULL;
+#else
+    (void) settable;
+#endif
     ERR_pop_to_mark();
 
     if (gated) {

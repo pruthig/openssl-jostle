@@ -13,11 +13,13 @@ package org.openssl.jostle.test.crypto;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 import org.openssl.jostle.test.util.CipherFamilies;
 import org.openssl.jostle.test.util.CipherSurfaceDriver;
 import org.openssl.jostle.util.Arrays;
 import org.openssl.jostle.util.encoders.Hex;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -40,6 +42,11 @@ import java.security.spec.InvalidParameterSpecException;
  */
 public class SM4AgreementTest
 {
+    private static void assumeSm4CcmAvailable()
+    {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(),
+                "SM4-CCM is unavailable in the OpenSSL 3.0 Jostle surface");
+    }
     /**
      * Class-level seeding random — used to derive each test's local
      * SHA1PRNG seed. Per CLAUDE.md: "cache one SecureRandom per test
@@ -948,6 +955,7 @@ public class SM4AgreementTest
     @Test
     public void sm4CCM_agreesWithBC() throws Exception
     {
+        assumeSm4CcmAvailable();
         SecureRandom sr = seededRandom("sm4CCM_agreesWithBC");
         String xform = "SM4/CCM/NoPadding";
         byte[] key = new byte[16];
@@ -983,6 +991,7 @@ public class SM4AgreementTest
     @Test
     public void sm4CCM_tagLengthVariation_agreesWithBC() throws Exception
     {
+        assumeSm4CcmAvailable();
         SecureRandom sr = seededRandom("sm4CCM_tagLengthVariation_agreesWithBC");
         String xform = "SM4/CCM/NoPadding";
         byte[] key = new byte[16];
@@ -1017,6 +1026,7 @@ public class SM4AgreementTest
     @Test
     public void sm4CCM_tamperedCiphertext_isRejected() throws Exception
     {
+        assumeSm4CcmAvailable();
         SecureRandom sr = seededRandom("sm4CCM_tamperedCiphertext_isRejected");
         byte[] key = new byte[16]; sr.nextBytes(key);
         byte[] iv = new byte[12]; sr.nextBytes(iv);
@@ -1047,6 +1057,7 @@ public class SM4AgreementTest
     @Test
     public void sm4CCM_multipleAAD_concatenates() throws Exception
     {
+        assumeSm4CcmAvailable();
         SecureRandom sr = seededRandom("sm4CCM_multipleAAD_concatenates");
         byte[] key = new byte[16]; sr.nextBytes(key);
         byte[] iv = new byte[12]; sr.nextBytes(iv);
@@ -1114,6 +1125,7 @@ public class SM4AgreementTest
     @Test
     public void sm4CCM_chunkingMatrix_byteIdentical() throws Exception
     {
+        assumeSm4CcmAvailable();
         SecureRandom sr = seededRandom("sm4CCM_chunkingMatrix_byteIdentical");
         byte[] key = new byte[16]; sr.nextBytes(key);
         byte[] iv = new byte[12]; sr.nextBytes(iv);
@@ -1136,6 +1148,7 @@ public class SM4AgreementTest
     @Test
     public void sm4CCM_offsetWrite_roundTripsWithoutClobberingPrefix() throws Exception
     {
+        assumeSm4CcmAvailable();
         SecureRandom sr = seededRandom("sm4CCM_offsetWrite_roundTripsWithoutClobberingPrefix");
         byte[] key = new byte[16]; sr.nextBytes(key);
         byte[] iv = new byte[12]; sr.nextBytes(iv);
@@ -1180,6 +1193,7 @@ public class SM4AgreementTest
     @Test
     public void sm4CCM_offsetWrite_shortBufferRejected() throws Exception
     {
+        assumeSm4CcmAvailable();
         SecureRandom sr = seededRandom("sm4CCM_offsetWrite_shortBufferRejected");
         byte[] key = new byte[16]; sr.nextBytes(key);
         byte[] iv = new byte[12]; sr.nextBytes(iv);
@@ -1200,6 +1214,7 @@ public class SM4AgreementTest
     @Test
     public void sm4CCM_resetReuse_acrossOperations() throws Exception
     {
+        assumeSm4CcmAvailable();
         SecureRandom sr = seededRandom("sm4CCM_resetReuse_acrossOperations");
         byte[] key = new byte[16]; sr.nextBytes(key);
         byte[] iv = new byte[12]; sr.nextBytes(iv);
@@ -1236,6 +1251,7 @@ public class SM4AgreementTest
     @Test
     public void sm4CCM_emptyPlaintext_agreesWithBC() throws Exception
     {
+        assumeSm4CcmAvailable();
         SecureRandom sr = seededRandom("sm4CCM_emptyPlaintext_agreesWithBC");
         byte[] key = new byte[16]; sr.nextBytes(key);
         byte[] iv = new byte[12]; sr.nextBytes(iv);
@@ -1260,6 +1276,7 @@ public class SM4AgreementTest
     @Test
     public void sm4CCM_tamperedTagAndAAD_rejected() throws Exception
     {
+        assumeSm4CcmAvailable();
         SecureRandom sr = seededRandom("sm4CCM_tamperedTagAndAAD_rejected");
         byte[] key = new byte[16]; sr.nextBytes(key);
         byte[] iv = new byte[12]; sr.nextBytes(iv);
@@ -1297,6 +1314,7 @@ public class SM4AgreementTest
     @Test
     public void sm4CCM_nonceLengthBoundaries() throws Exception
     {
+        assumeSm4CcmAvailable();
         SecureRandom sr = seededRandom("sm4CCM_nonceLengthBoundaries");
         byte[] key = new byte[16]; sr.nextBytes(key);
         SecretKey secretKey = new SecretKeySpec(key, "SM4");
@@ -1345,6 +1363,7 @@ public class SM4AgreementTest
     @Test
     public void sm4CCM_wrongKeyLength_rejected() throws Exception
     {
+        assumeSm4CcmAvailable();
         byte[] iv = new byte[12];
         new SecureRandom().nextBytes(iv);
         Cipher ok = Cipher.getInstance("SM4/CCM/NoPadding", JostleProvider.PROVIDER_NAME);
@@ -1371,6 +1390,7 @@ public class SM4AgreementTest
     @Test
     public void sm4CCM_invalidTagLength_rejected() throws Exception
     {
+        assumeSm4CcmAvailable();
         byte[] key = new byte[16];
         new SecureRandom().nextBytes(key);
         byte[] iv = new byte[12];
@@ -1397,6 +1417,7 @@ public class SM4AgreementTest
     @Test
     public void sm4CCM_ivParameterSpec_agreesWithBC() throws Exception
     {
+        assumeSm4CcmAvailable();
         SecureRandom sr = seededRandom("sm4CCM_ivParameterSpec_agreesWithBC");
         String xform = "SM4/CCM/NoPadding";
         byte[] key = new byte[16]; sr.nextBytes(key);
@@ -1498,6 +1519,7 @@ public class SM4AgreementTest
     @Test
     public void everyRegisteredSM4CipherIsDriven() throws Exception
     {
+        assumeSm4CcmAvailable();
         CipherSurfaceDriver.driveWholeSurface(
                 Security.getProvider(JostleProvider.PROVIDER_NAME),
                 CipherFamilies.SM4_PREFIX, "SM4", CipherFamilies.SM4,

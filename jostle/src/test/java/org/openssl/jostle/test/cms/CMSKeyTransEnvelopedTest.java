@@ -26,9 +26,11 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
@@ -120,18 +122,24 @@ public class CMSKeyTransEnvelopedTest
     @Test
     public void keyTrans_bcEncrypt_jslDecrypt() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL32Features(),
+                "RSA PKCS#1 implicit rejection is unavailable before OpenSSL 3.2");
         roundTrip(BC, JSL);
     }
 
     @Test
     public void keyTrans_jslBothDirections() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL32Features(),
+                "RSA PKCS#1 implicit rejection is unavailable before OpenSSL 3.2");
         roundTrip(JSL, JSL);
     }
 
     @Test
     public void keyTrans_cbcContent_nonAlignedLength_roundTrips() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL32Features(),
+                "RSA PKCS#1 implicit rejection is unavailable before OpenSSL 3.2");
         // CBC_DECRYPT_UPDATE_BUFFERING_GAP regression: CMS drives the content
         // cipher via update()/doFinal() across reads, which corrupted any
         // AES-CBC content whose length is not a block multiple. 30 bytes is
@@ -162,6 +170,8 @@ public class CMSKeyTransEnvelopedTest
     @Test
     public void keyTrans_desEdeContent_roundTrips() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL32Features(),
+                "RSA PKCS#1 implicit rejection is unavailable before OpenSSL 3.2");
         // DESEDE_AUTO_IV_GAP regression: the CMS content encryptor inits the
         // content cipher with null AlgorithmParameters (auto-IV), which NPE'd
         // in DESedeBlockCipherSpi. DES-EDE3-CBC is the classic CMS default

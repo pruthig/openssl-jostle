@@ -18,9 +18,11 @@ import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
 import org.bouncycastle.jcajce.spec.KTSParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 import org.openssl.jostle.jcajce.provider.kts.KtsKdf;
 import org.openssl.jostle.util.Arrays;
 
@@ -79,6 +81,7 @@ public class MLKEMKTSCipherTest
     @BeforeAll
     public static void before()
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "ML-KEM is unavailable in OpenSSL 3.0");
         synchronized (JostleProvider.class)
         {
             if (Security.getProvider(JostleProvider.PROVIDER_NAME) == null)

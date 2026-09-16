@@ -13,9 +13,11 @@ package org.openssl.jostle.test.parity;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 
 import javax.crypto.spec.PBEParameterSpec;
 import java.security.KeyFactory;
@@ -120,6 +122,8 @@ public class SignatureNegativePathSurveyTest
     @BeforeAll
     public static void setUp()
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(),
+                "the complete Signature survey requires the OpenSSL 3.5 PQC surface");
         jsl = Security.getProvider(JostleProvider.PROVIDER_NAME);
         if (jsl == null)
         {

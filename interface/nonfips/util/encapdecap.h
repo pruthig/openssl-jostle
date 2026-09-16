@@ -9,6 +9,7 @@
 #define ENCAPDECAP_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 #include "key_spec.h"
 

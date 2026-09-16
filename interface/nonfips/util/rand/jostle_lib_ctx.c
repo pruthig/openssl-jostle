@@ -207,7 +207,7 @@ static const OSSL_ALGORITHM *jrand_query(void *provctx, int operation_id,
 static const OSSL_DISPATCH jrand_dispatch_table[] = {
     {OSSL_FUNC_PROVIDER_TEARDOWN, (void (*)(void)) jrand_prov_teardown},
     {OSSL_FUNC_PROVIDER_QUERY_OPERATION, (void (*)(void)) jrand_query},
-    OSSL_DISPATCH_END
+    {0, NULL}
 };
 
 // Provider entry function
@@ -378,4 +378,3 @@ void rand_clear_java_srand_call(void) {
     // treats it as "no up-call target" and fails the draw typed.
     jo_assert(CRYPTO_THREAD_set_local(&java_srand_id, NULL) != 0);
 }
-

@@ -12,12 +12,14 @@
 package org.openssl.jostle.test.mlxkem;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.SecretKeyWithEncapsulation;
 import org.openssl.jostle.jcajce.interfaces.MLXKEMPrivateKey;
 import org.openssl.jostle.jcajce.interfaces.MLXKEMPublicKey;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 import org.openssl.jostle.jcajce.spec.KEMExtractSpec;
 import org.openssl.jostle.jcajce.spec.KEMGenerateSpec;
 import org.openssl.jostle.jcajce.spec.MLKEMParameterSpec;
@@ -64,6 +66,7 @@ public class MLXKEMTest
     @BeforeAll
     static void before()
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "MLX-KEM is unavailable in OpenSSL 3.0");
         if (Security.getProvider(JSL) == null)
         {
             Security.addProvider(new JostleProvider());

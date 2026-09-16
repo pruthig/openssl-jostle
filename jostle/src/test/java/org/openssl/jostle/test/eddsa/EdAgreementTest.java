@@ -444,6 +444,9 @@ public class EdAgreementTest
     @Test
     public void prehashAndContextSignaturesAgreeWithBouncyCastleLightweight() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "EdDSA prehash/context variants are unavailable in OpenSSL 3.0");
         SecureRandom sr = seededRandom("prehashAndContextSignaturesAgreeWithBouncyCastleLightweight");
 
         for (String alg : BC_LIGHTWEIGHT_ONLY)
@@ -510,6 +513,9 @@ public class EdAgreementTest
     @Test
     public void ed25519CtxSignatureDoesNotVerifyUnderADifferentContext() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "Ed25519ctx is unavailable in OpenSSL 3.0");
         SecureRandom sr = seededRandom("ed25519CtxSignatureDoesNotVerifyUnderADifferentContext");
 
         KeyPair kp = generate("ED25519");
@@ -560,6 +566,9 @@ public class EdAgreementTest
     @Test
     public void keysRoundTripThroughBothKeyFactories() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "BC RFC 5958 Ed private-key import is unavailable in OpenSSL 3.0");
         SecureRandom sr = seededRandom("keysRoundTripThroughBothKeyFactories");
 
         for (String curve : CURVES)
@@ -678,6 +687,9 @@ public class EdAgreementTest
     @Test
     public void edPrivateKeyEncodingsDifferOnlyByTheOptionalPublicKey() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "BC RFC 5958 Ed private-key import is unavailable in OpenSSL 3.0");
         for (String curve : CURVES)
         {
             KeyPair bcPair = KeyPairGenerator.getInstance(bcKeyFactory(curve), BC).generateKeyPair();

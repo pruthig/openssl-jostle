@@ -13,9 +13,11 @@ package org.openssl.jostle.test.xec;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 import org.openssl.jostle.util.Arrays;
 
 import javax.crypto.KeyAgreement;
@@ -261,6 +263,8 @@ public class XDHTest
     @Test
     public void testXdh_bcKeysImportedIntoJostle_agree() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(),
+                "OpenSSL 3.0 cannot import BC RFC 5958 XDH private-key encodings");
         for (String alg : ALGS)
         {
             KeyPair bcAlice = bcKeyPair(alg);
@@ -333,6 +337,8 @@ public class XDHTest
     @Test
     public void testXdh_keyFactory_pkcs8_roundTripThroughBC() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(),
+                "OpenSSL 3.0 cannot import BC RFC 5958 XDH private-key encodings");
         for (String alg : ALGS)
         {
             KeyFactory bcKf = KeyFactory.getInstance(alg, BouncyCastleProvider.PROVIDER_NAME);

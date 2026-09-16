@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -117,6 +118,11 @@ public class SymmetricKeyGeneratorCompletenessTest
     {
         for (String excluded : NO_KEY_GENERATOR)
         {
+            if ("ML-KEM".equals(excluded)
+                    && !TestUtil.supportsOpenSSL35Features())
+            {
+                continue;
+            }
             Assertions.assertNotNull(jsl.getService("Cipher", excluded),
                     excluded + " is excluded from the KeyGenerator requirement but is no longer a"
                             + " registered Cipher; delete the entry rather than leaving it to"

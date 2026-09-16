@@ -18,9 +18,11 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -93,6 +95,8 @@ public class RSAForeignKeyCipherTest
     @Test
     public void foreignKeys_wrapUnwrap_roundTrip() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL32Features(),
+                "RSA private-key unwrap is unavailable before OpenSSL 3.2");
         KeyPair kp = jslRsa();
         PublicKey fPub = foreignPublic(kp.getPublic());
         PrivateKey fPriv = foreignPrivate(kp.getPrivate());
@@ -121,6 +125,8 @@ public class RSAForeignKeyCipherTest
     @Test
     public void foreignKeys_encryptDecrypt_roundTrip() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL32Features(),
+                "RSA private-key decrypt is unavailable before OpenSSL 3.2");
         KeyPair kp = jslRsa();
         PublicKey fPub = foreignPublic(kp.getPublic());
         PrivateKey fPriv = foreignPrivate(kp.getPrivate());
@@ -144,6 +150,8 @@ public class RSAForeignKeyCipherTest
     @Test
     public void certificatePublicKey_wrapInitSucceeds() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL32Features(),
+                "RSA private-key unwrap is unavailable before OpenSSL 3.2");
         // The exact scenario from the gap doc: a key straight off a certificate.
         KeyPair kp = jslRsa();
         X509Certificate cert = selfSignedCert(kp);

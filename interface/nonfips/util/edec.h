@@ -10,6 +10,7 @@
 
 #ifndef EDEC_H
 #define EDEC_H
+#include <stddef.h>
 #include <stdint.h>
 
 #include "key_spec.h"

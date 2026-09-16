@@ -21,6 +21,7 @@
 
 #include "kdf_memhard.h"
 #include "openssl/kdf.h"
+#include "openssl/opensslv.h"
 
 
 #include <openssl/core_names.h>
@@ -107,6 +108,7 @@ exit:
  *             threads > lanes. Do not raise this without re-reading all three
  *             reasons.
  */
+#if OPENSSL_VERSION_PREREQ(3, 5)
 int32_t jo_argon2(
     int32_t type,
     uint32_t version,
@@ -180,3 +182,30 @@ exit:
 
     return ret;
 }
+#else
+int32_t jo_argon2(
+    int32_t type,
+    uint32_t version,
+    uint8_t *password, size_t password_len,
+    uint8_t *salt, size_t salt_len,
+    uint32_t iterations,
+    uint32_t memory_kib,
+    uint32_t lanes,
+    uint8_t *out,
+    size_t out_len
+)
+{
+    (void) type;
+    (void) version;
+    (void) password;
+    (void) password_len;
+    (void) salt;
+    (void) salt_len;
+    (void) iterations;
+    (void) memory_kib;
+    (void) lanes;
+    (void) out;
+    (void) out_len;
+    return JO_OPENSSL_ERROR;
+}
+#endif

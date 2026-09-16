@@ -14,6 +14,7 @@
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/x509.h>
+#include <openssl/opensslv.h>
 #include <openssl/core_names.h>
 #include <openssl/encoder.h>
 #include "bc_err_codes.h"
@@ -195,6 +196,7 @@ int32_t asn1_writer_encode_public_key(asn1_ctx *ctx, key_spec *key_spec, size_t 
  * @return 1 on success, otherwise 0 or a negative typed code
  */
 static int32_t seed_only_encoder(asn1_ctx *ctx, key_spec *key_spec) {
+#if JOSTLE_OPENSSL_HAS_PQC
     // TODO Seed only encoding logic
     // Add logic to detect OpenSSL version and use that for seed only encoding.
     // Otherwise, default to using the templates.
@@ -370,6 +372,11 @@ static int32_t seed_only_encoder(asn1_ctx *ctx, key_spec *key_spec) {
 
     // No algorithm matched — seed-only encoding only supports ML-DSA / ML-KEM.
     return JO_INCORRECT_KEY_TYPE;
+#else
+    (void) ctx;
+    (void) key_spec;
+    return JO_INCORRECT_KEY_TYPE;
+#endif
 }
 
 
@@ -470,12 +477,11 @@ key_spec *asn1_writer_decode_private_key(const uint8_t *src, size_t src_len, int
 
     ERR_clear_error();
 
+    OSSL_LIB_CTX *libctx = get_global_jostle_fips_ossl_lib_ctx();
     const long _src_len = (int32_t) src_len;
     const uint8_t *_src = src;
-
     // Pass &new_key with new_key == NULL so d2i allocates fresh; on failure
     // it leaves *new_key NULL, avoiding the d2i-may-free-pre-alloc footgun.
-    OSSL_LIB_CTX *libctx = get_global_jostle_fips_ossl_lib_ctx();
     const EVP_PKEY *new_key_ = d2i_PrivateKey_ex(EVP_PKEY_NONE, &new_key, &_src, _src_len, libctx, NULL);
 
     if (new_key_ == NULL) {

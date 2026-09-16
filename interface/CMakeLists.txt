@@ -49,6 +49,80 @@ else ()
     message("OpenSSL Prefix: ${OPENSSL_PREFIX}")
 endif ()
 
+# OpenSSL 3.0 does not expose the post-quantum key and signature APIs used by
+# the PQC bridge sources.  Keep the source lists common for 3.5 and later,
+# while allowing the rest of the interface to build against 3.0.
+file(STRINGS "${OPENSSL_PREFIX}/include/openssl/opensslv.h" OPENSSL_VERSION_MAJOR_LINE
+     REGEX "^# *define OPENSSL_VERSION_MAJOR")
+file(STRINGS "${OPENSSL_PREFIX}/include/openssl/opensslv.h" OPENSSL_VERSION_MINOR_LINE
+     REGEX "^# *define OPENSSL_VERSION_MINOR")
+string(REGEX MATCH "[0-9]+" OPENSSL_VERSION_MAJOR "${OPENSSL_VERSION_MAJOR_LINE}")
+string(REGEX MATCH "[0-9]+" OPENSSL_VERSION_MINOR "${OPENSSL_VERSION_MINOR_LINE}")
+if (OPENSSL_VERSION_MINOR VERSION_GREATER_EQUAL "5")
+    set(JOSTLE_OPENSSL_HAS_PQC TRUE)
+    set(JOSTLE_OPENSSL_HAS_KBKDF_R TRUE)
+    message("OpenSSL PQC APIs enabled")
+else ()
+    set(JOSTLE_OPENSSL_HAS_PQC FALSE)
+    set(JOSTLE_OPENSSL_HAS_KBKDF_R FALSE)
+    message("OpenSSL PQC APIs disabled for OpenSSL ${OPENSSL_VERSION_MAJOR}.${OPENSSL_VERSION_MINOR}")
+endif ()
+
+set(JOSTLE_PQC_UTIL_SOURCES
+        nonfips/util/mldsa.h
+        nonfips/util/mldsa.c
+        nonfips/util/slhdsa.h
+        nonfips/util/slhdsa.c
+        nonfips/util/mlkem.h
+        nonfips/util/mlkem.c
+        nonfips/util/mlxkem.h
+        nonfips/util/mlxkem.c
+)
+set(JOSTLE_PQC_JNI_SOURCES
+        nonfips/jni/mldsa_ni_jni.c
+        nonfips/jni/slhdsa_ni_jni.c
+        nonfips/jni/mlkem_ni_jni.c
+        nonfips/jni/mlxkem_ni_jni.c
+)
+set(JOSTLE_PQC_FFI_SOURCES
+        nonfips/ffi/mldsa_ni_ffi.c
+        nonfips/ffi/slh_dsa_ni_ffi.c
+        nonfips/ffi/mlkem_ni_ffi.c
+        nonfips/ffi/mlxkem_ni_ffi.c
+)
+set(JOSTLE_MEMHARD_UTIL_SOURCES
+        nonfips/util/kdf_memhard.h
+        nonfips/util/kdf_memhard.c
+)
+set(JOSTLE_MEMHARD_JNI_SOURCES nonfips/jni/kdf_memhard_jni.c)
+set(JOSTLE_MEMHARD_FFI_SOURCES nonfips/ffi/kdf_memhard_ffi.c)
+if (NOT JOSTLE_OPENSSL_HAS_PQC)
+    set(JOSTLE_PQC_UTIL_SOURCES)
+    set(JOSTLE_PQC_JNI_SOURCES)
+    set(JOSTLE_PQC_FFI_SOURCES)
+endif ()
+
+if (JOSTLE_OPENSSL_HAS_PQC)
+    set(JOSTLE_FIPS_PQC_UTIL_SOURCES
+            fips/util/mldsa.h fips/util/mldsa.c
+            fips/util/mlkem.h fips/util/mlkem.c
+            fips/util/mlxkem.h fips/util/mlxkem.c
+            fips/util/slhdsa.h fips/util/slhdsa.c)
+    set(JOSTLE_FIPS_PQC_JNI_SOURCES
+            fips/jni/mldsa_fips_jni.c fips/jni/mlkem_fips_jni.c
+            fips/jni/mlxkem_fips_jni.c fips/jni/slhdsa_fips_jni.c)
+    set(JOSTLE_FIPS_PQC_FFI_SOURCES
+            fips/ffi/mldsa_ni_fips_ffi.c fips/ffi/mlkem_ni_fips_ffi.c
+            fips/ffi/mlxkem_ni_fips_ffi.c fips/ffi/slh_dsa_ni_fips_ffi.c)
+endif ()
+
+if (JOSTLE_OPENSSL_HAS_PQC)
+    add_compile_definitions(JOSTLE_OPENSSL_HAS_PQC=1)
+endif ()
+if (JOSTLE_OPENSSL_HAS_KBKDF_R)
+    add_compile_definitions(JOSTLE_OPENSSL_HAS_KBKDF_R=1)
+endif ()
+
 
 get_filename_component(JAVA_PRJ_HOME "${CMAKE_CURRENT_SOURCE_DIR}/.." ABSOLUTE)
 
@@ -144,14 +218,7 @@ set(FIPS_UTIL_SOURCES
         # SLH-DSA (probe: fips-c-review/probes/pqc_op_probe.c); 3.1.2 does not,
         # and ProvFIPS{MLDSA,MLKEM,SLHDSA} gate registration on the loaded
         # module actually serving them.
-        fips/util/mldsa.h
-        fips/util/mldsa.c
-        fips/util/mlkem.h
-        fips/util/mlkem.c
-        fips/util/mlxkem.h
-        fips/util/mlxkem.c
-        fips/util/slhdsa.h
-        fips/util/slhdsa.c
+        ${JOSTLE_FIPS_PQC_UTIL_SOURCES}
 )
 
 set(FIPS_JNI_GLUE_SOURCES
@@ -173,10 +240,7 @@ set(FIPS_JNI_GLUE_SOURCES
         fips/jni/xec_fips_jni.c
         fips/jni/ed_fips_jni.c
         fips/jni/kdf_fips_jni.c
-        fips/jni/mldsa_fips_jni.c
-        fips/jni/mlkem_fips_jni.c
-        fips/jni/mlxkem_fips_jni.c
-        fips/jni/slhdsa_fips_jni.c
+        ${JOSTLE_FIPS_PQC_JNI_SOURCES}
         fips/jni/rand_upcall_jni.h
         fips/jni/rand_upcall_jni.c
         fips/jni/byte_array_critical.c
@@ -223,10 +287,7 @@ set(FIPS_FFI_GLUE_SOURCES
         fips/ffi/dh_ni_fips_ffi.c
         fips/ffi/xec_ni_fips_ffi.c
         fips/ffi/ed_ni_fips_ffi.c
-        fips/ffi/mldsa_ni_fips_ffi.c
-        fips/ffi/mlkem_ni_fips_ffi.c
-        fips/ffi/mlxkem_ni_fips_ffi.c
-        fips/ffi/slh_dsa_ni_fips_ffi.c
+        ${JOSTLE_FIPS_PQC_FFI_SOURCES}
 )
 
 
@@ -259,21 +320,11 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" AND (${BC_ARCH} STREQUAL "arm64" OR $
             nonfips/jni/block_cipher_ni_jni.c
             nonfips/jni/ccm_ni_jni.c
             nonfips/jni/spec_ni_jni.c
-            nonfips/jni/mldsa_ni_jni.c
-            nonfips/jni/slhdsa_ni_jni.c
-            nonfips/jni/mlkem_ni_jni.c
-            nonfips/jni/mlxkem_ni_jni.c
+            ${JOSTLE_PQC_JNI_SOURCES}
             nonfips/jni/asn1_ni_jni.c
             nonfips/jni/ks_jni.c
             nonfips/util/jo_assert.h
-            nonfips/util/mldsa.h
-            nonfips/util/mldsa.c
-            nonfips/util/slhdsa.h
-            nonfips/util/slhdsa.c
-            nonfips/util/mlkem.h
-            nonfips/util/mlkem.c
-            nonfips/util/mlxkem.h
-            nonfips/util/mlxkem.c
+            ${JOSTLE_PQC_UTIL_SOURCES}
             nonfips/util/capability.h
             nonfips/util/capability.c
             nonfips/util/encapdecap.h
@@ -300,11 +351,10 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" AND (${BC_ARCH} STREQUAL "arm64" OR $
             nonfips/util/ops.c
             nonfips/jni/ops.c
             nonfips/jni/kdf_jni.c
-            nonfips/jni/kdf_memhard_jni.c
+            ${JOSTLE_MEMHARD_JNI_SOURCES}
             nonfips/util/kdf.h
             nonfips/util/kdf.c
-            nonfips/util/kdf_memhard.h
-            nonfips/util/kdf_memhard.c
+            ${JOSTLE_MEMHARD_UTIL_SOURCES}
             nonfips/util/mac.h
             nonfips/util/mac.c
             nonfips/util/md.c
@@ -377,21 +427,11 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" AND (${BC_ARCH} STREQUAL "arm64" OR $
             nonfips/ffi/block_cipher_ni_ffi.c
             nonfips/ffi/ccm_ni_ffi.c
             nonfips/ffi/spec_ni_ffi.c
-            nonfips/ffi/mldsa_ni_ffi.c
-            nonfips/ffi/mlkem_ni_ffi.c
-            nonfips/ffi/mlxkem_ni_ffi.c
-            nonfips/ffi/slh_dsa_ni_ffi.c
+            ${JOSTLE_PQC_FFI_SOURCES}
             nonfips/ffi/asn1_ni_ffi.c
             nonfips/ffi/ks_ffi.c
             nonfips/util/jo_assert.h
-            nonfips/util/mldsa.h
-            nonfips/util/mldsa.c
-            nonfips/util/slhdsa.h
-            nonfips/util/slhdsa.c
-            nonfips/util/mlkem.h
-            nonfips/util/mlkem.c
-            nonfips/util/mlxkem.h
-            nonfips/util/mlxkem.c
+            ${JOSTLE_PQC_UTIL_SOURCES}
             nonfips/util/capability.h
             nonfips/util/capability.c
             nonfips/util/encapdecap.h
@@ -413,11 +453,10 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" AND (${BC_ARCH} STREQUAL "arm64" OR $
             nonfips/util/ops.h
             nonfips/util/ops.c
             nonfips/ffi/kdf_ffi.c
-            nonfips/ffi/kdf_memhard_ffi.c
+            ${JOSTLE_MEMHARD_FFI_SOURCES}
             nonfips/util/kdf.h
             nonfips/util/kdf.c
-            nonfips/util/kdf_memhard.h
-            nonfips/util/kdf_memhard.c
+            ${JOSTLE_MEMHARD_UTIL_SOURCES}
             nonfips/util/mac.h
             nonfips/util/mac.c
             nonfips/util/md.c
@@ -544,10 +583,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND
             nonfips/jni/block_cipher_ni_jni.c
             nonfips/jni/ccm_ni_jni.c
             nonfips/jni/spec_ni_jni.c
-            nonfips/jni/mldsa_ni_jni.c
-            nonfips/jni/slhdsa_ni_jni.c
-            nonfips/jni/mlkem_ni_jni.c
-            nonfips/jni/mlxkem_ni_jni.c
+            ${JOSTLE_PQC_JNI_SOURCES}
             nonfips/jni/asn1_ni_jni.c
             nonfips/jni/ks_jni.c
             nonfips/util/block_cipher_ctx.h
@@ -557,14 +593,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND
             nonfips/util/bc_err_codes.h
             nonfips/jni/byte_array_critical.c
             nonfips/jni/byte_array_critical.h
-            nonfips/util/mldsa.h
-            nonfips/util/mldsa.c
-            nonfips/util/slhdsa.h
-            nonfips/util/slhdsa.c
-            nonfips/util/mlkem.h
-            nonfips/util/mlkem.c
-            nonfips/util/mlxkem.h
-            nonfips/util/mlxkem.c
+            ${JOSTLE_PQC_UTIL_SOURCES}
             nonfips/util/capability.h
             nonfips/util/capability.c
             nonfips/util/encapdecap.h
@@ -584,11 +613,10 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND
             nonfips/util/ops.c
             nonfips/jni/ops.c
             nonfips/jni/kdf_jni.c
-            nonfips/jni/kdf_memhard_jni.c
+            ${JOSTLE_MEMHARD_JNI_SOURCES}
             nonfips/util/kdf.h
             nonfips/util/kdf.c
-            nonfips/util/kdf_memhard.h
-            nonfips/util/kdf_memhard.c
+            ${JOSTLE_MEMHARD_UTIL_SOURCES}
             nonfips/util/mac.h
             nonfips/util/mac.c
             nonfips/util/md.c
@@ -656,21 +684,11 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND
             nonfips/ffi/block_cipher_ni_ffi.c
             nonfips/ffi/ccm_ni_ffi.c
             nonfips/ffi/spec_ni_ffi.c
-            nonfips/ffi/mldsa_ni_ffi.c
-            nonfips/ffi/slh_dsa_ni_ffi.c
-            nonfips/ffi/mlkem_ni_ffi.c
-            nonfips/ffi/mlxkem_ni_ffi.c
+            ${JOSTLE_PQC_FFI_SOURCES}
             nonfips/ffi/asn1_ni_ffi.c
             nonfips/ffi/ks_ffi.c
             nonfips/util/jo_assert.h
-            nonfips/util/mldsa.h
-            nonfips/util/mldsa.c
-            nonfips/util/slhdsa.h
-            nonfips/util/slhdsa.c
-            nonfips/util/mlkem.h
-            nonfips/util/mlkem.c
-            nonfips/util/mlxkem.h
-            nonfips/util/mlxkem.c
+            ${JOSTLE_PQC_UTIL_SOURCES}
             nonfips/util/capability.h
             nonfips/util/capability.c
             nonfips/util/encapdecap.h
@@ -692,11 +710,10 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND
             nonfips/util/ops.h
             nonfips/util/ops.c
             nonfips/ffi/kdf_ffi.c
-            nonfips/ffi/kdf_memhard_ffi.c
+            ${JOSTLE_MEMHARD_FFI_SOURCES}
             nonfips/util/kdf.h
             nonfips/util/kdf.c
-            nonfips/util/kdf_memhard.h
-            nonfips/util/kdf_memhard.c
+            ${JOSTLE_MEMHARD_UTIL_SOURCES}
             nonfips/util/mac.h
             nonfips/util/mac.c
             nonfips/util/md.c
@@ -807,21 +824,11 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
             nonfips/jni/block_cipher_ni_jni.c
             nonfips/jni/ccm_ni_jni.c
             nonfips/jni/spec_ni_jni.c
-            nonfips/jni/mldsa_ni_jni.c
-            nonfips/jni/slhdsa_ni_jni.c
-            nonfips/jni/mlkem_ni_jni.c
-            nonfips/jni/mlxkem_ni_jni.c
+            ${JOSTLE_PQC_JNI_SOURCES}
             nonfips/jni/asn1_ni_jni.c
             nonfips/jni/ks_jni.c
             nonfips/util/jo_assert.h
-            nonfips/util/mldsa.h
-            nonfips/util/mldsa.c
-            nonfips/util/slhdsa.h
-            nonfips/util/slhdsa.c
-            nonfips/util/mlkem.h
-            nonfips/util/mlkem.c
-            nonfips/util/mlxkem.h
-            nonfips/util/mlxkem.c
+            ${JOSTLE_PQC_UTIL_SOURCES}
             nonfips/util/capability.h
             nonfips/util/capability.c
             nonfips/util/encapdecap.h
@@ -848,11 +855,10 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
             nonfips/util/ops.c
             nonfips/jni/ops.c
             nonfips/jni/kdf_jni.c
-            nonfips/jni/kdf_memhard_jni.c
+            ${JOSTLE_MEMHARD_JNI_SOURCES}
             nonfips/util/kdf.h
             nonfips/util/kdf.c
-            nonfips/util/kdf_memhard.h
-            nonfips/util/kdf_memhard.c
+            ${JOSTLE_MEMHARD_UTIL_SOURCES}
             nonfips/util/mac.h
             nonfips/util/mac.c
             nonfips/util/md.c
@@ -912,24 +918,14 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
             nonfips/ffi/block_cipher_ni_ffi.c
             nonfips/ffi/ccm_ni_ffi.c
             nonfips/ffi/spec_ni_ffi.c
-            nonfips/ffi/mldsa_ni_ffi.c
-            nonfips/ffi/mlkem_ni_ffi.c
-            nonfips/ffi/mlxkem_ni_ffi.c
-            nonfips/ffi/slh_dsa_ni_ffi.c
+            ${JOSTLE_PQC_FFI_SOURCES}
             nonfips/ffi/asn1_ni_ffi.c
             nonfips/ffi/md_ffi.c
             nonfips/ffi/rand_ffi.c
             nonfips/ffi/mac_ffi.c
             nonfips/ffi/ks_ffi.c
             nonfips/util/jo_assert.h
-            nonfips/util/mldsa.h
-            nonfips/util/mldsa.c
-            nonfips/util/slhdsa.h
-            nonfips/util/slhdsa.c
-            nonfips/util/mlkem.h
-            nonfips/util/mlkem.c
-            nonfips/util/mlxkem.h
-            nonfips/util/mlxkem.c
+            ${JOSTLE_PQC_UTIL_SOURCES}
             nonfips/util/capability.h
             nonfips/util/capability.c
             nonfips/util/encapdecap.h
@@ -951,11 +947,10 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
             nonfips/util/ops.h
             nonfips/util/ops.c
             nonfips/ffi/kdf_ffi.c
-            nonfips/ffi/kdf_memhard_ffi.c
+            ${JOSTLE_MEMHARD_FFI_SOURCES}
             nonfips/util/kdf.h
             nonfips/util/kdf.c
-            nonfips/util/kdf_memhard.h
-            nonfips/util/kdf_memhard.c
+            ${JOSTLE_MEMHARD_UTIL_SOURCES}
             nonfips/util/mac.h
             nonfips/util/mac.c
             nonfips/util/md.c

@@ -156,6 +156,9 @@ public class ProviderPinningLoudFailureTest
     @Test
     public void ktsWrap_unboundSpi_failsAtTheDigestPinRatherThanFallingThrough() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "ML-KEM is unavailable in OpenSSL 3.0");
         // Generated through the SPI directly, NOT through the registered
         // provider, so both sides live in the unbound realm; a key from the
         // registered provider would be refused by MT-14 instance binding
@@ -194,6 +197,9 @@ public class ProviderPinningLoudFailureTest
     @Test
     public void ktsWrap_ownInstanceWithoutTheDigest_failsNamingItRatherThanBorrowing() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "ML-KEM is unavailable in OpenSSL 3.0");
         Provider digestless = new StrippedJostleProvider("MessageDigest", "SHA-256");
         Assertions.assertNotNull(Security.getProvider(JostleProvider.PROVIDER_NAME)
                         .getService("MessageDigest", "SHA-256"),
@@ -222,6 +228,9 @@ public class ProviderPinningLoudFailureTest
     @Test
     public void ktsWrap_ownInstanceWithoutTheKeyWrap_failsNamingItRatherThanBorrowing() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "ML-KEM is unavailable in OpenSSL 3.0");
         // id-aes256-wrap: the KEK is 256-bit, so this is the OID the wrap
         // resolves. Removing it leaves the digest intact, so a failure here
         // can only be the key-wrap pin.
@@ -248,6 +257,9 @@ public class ProviderPinningLoudFailureTest
     @Test
     public void ktsWrap_ownInstanceThatServesEverything_wraps() throws Exception
     {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                org.openssl.jostle.test.TestUtil.supportsOpenSSL35Features(),
+                "ML-KEM is unavailable in OpenSSL 3.0");
         Provider jsl = Security.getProvider(JostleProvider.PROVIDER_NAME);
         KeyPair kp = KeyPairGenerator.getInstance("ML-KEM-768", jsl).generateKeyPair();
         Cipher c = Cipher.getInstance("ML-KEM", jsl);

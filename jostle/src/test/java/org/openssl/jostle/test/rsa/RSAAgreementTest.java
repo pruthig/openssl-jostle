@@ -13,9 +13,11 @@ package org.openssl.jostle.test.rsa;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 import org.openssl.jostle.test.util.CipherFamilies;
 import org.openssl.jostle.test.util.ProviderSurfaceGuard;
 import org.openssl.jostle.util.Arrays;
@@ -381,6 +383,8 @@ public class RSAAgreementTest
     @Test
     public void encryptionPaddingsAgreeBothDirections() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL32Features(),
+                "RSA private-key decrypt is unavailable before OpenSSL 3.2");
         SecureRandom sr = seededRandom("encryptionPaddingsAgreeBothDirections");
 
         for (String xform : new String[]{
@@ -446,6 +450,8 @@ public class RSAAgreementTest
     @Test
     public void bareRsaCipherNameDeliberatelyDiffersFromBouncyCastle() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL32Features(),
+                "RSA private-key decrypt is unavailable before OpenSSL 3.2");
         SecureRandom sr = seededRandom("bareRsaCipherNameDeliberatelyDiffersFromBouncyCastle");
         byte[] msg = new byte[32];
         sr.nextBytes(msg);
@@ -580,6 +586,8 @@ public class RSAAgreementTest
     @Test
     public void everyRegisteredRsaServiceIsDriven() throws Exception
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL32Features(),
+                "RSA private-key decrypt is unavailable before OpenSSL 3.2");
         final SecureRandom sr = seededRandom("everyRegisteredRsaServiceIsDriven");
 
         ProviderSurfaceGuard.assertEveryServiceDriven(Security.getProvider(JSL),

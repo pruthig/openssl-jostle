@@ -16,6 +16,7 @@
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
+#include <openssl/opensslv.h>
 
 #include "bc_err_codes.h"
 #include "ops.h"
@@ -66,7 +67,11 @@ md_ctx *md_ctx_create(const char *name, int xof_len, int *err) {
     //    XOF output in use is measured in hundreds of bytes) and far below a
     //    length that turns a caller's buffer allocation into a denial of
     //    service.
+#if OPENSSL_VERSION_PREREQ(3, 5)
     const int is_xof = EVP_MD_xof(md);
+#else
+    const int is_xof = (EVP_MD_get_flags(md) & EVP_MD_FLAG_XOF) != 0;
+#endif
     if (is_xof) {
         if (xof_len <= 0 || xof_len > MD_MAX_XOF_BYTES) {
             EVP_MD_free(md);

@@ -16,11 +16,13 @@ import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.util.ASN1Dump;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openssl.jostle.jcajce.interfaces.MLDSAPrivateKey;
 import org.openssl.jostle.jcajce.interfaces.MLDSAPublicKey;
 import org.openssl.jostle.jcajce.provider.JostleProvider;
+import org.openssl.jostle.test.TestUtil;
 import org.openssl.jostle.jcajce.provider.mldsa.MLDSAKeyPairGeneratorImpl;
 import org.openssl.jostle.jcajce.spec.ContextParameterSpec;
 import org.openssl.jostle.jcajce.spec.MLDSAParameterSpec;
@@ -92,6 +94,7 @@ public class MLDSATest
     @BeforeAll
     public static void before()
     {
+        Assumptions.assumeTrue(TestUtil.supportsOpenSSL35Features(), "ML-DSA is unavailable in OpenSSL 3.0");
         synchronized (JostleProvider.class)
         {
             if (Security.getProvider(JostleProvider.PROVIDER_NAME) == null)
