@@ -51,6 +51,7 @@ final class Capabilities
      */
     static boolean canFetchKeyMgmt(String name)
     {
+        NISelector.initializePqcServices();
         return NISelector.OpenSSLNI.canFetch(OpenSSLNI.OP_KEYMGMT, name) != 0;
     }
 }

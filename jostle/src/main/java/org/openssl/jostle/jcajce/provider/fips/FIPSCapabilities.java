@@ -102,6 +102,7 @@ final class FIPSCapabilities
      */
     static boolean canFetchKeyMgmt(String name)
     {
+        FIPSNISelector.initializePqcServices();
         return FIPSNISelector.OpenSSLFIPSNI.canFetch(OpenSSLFIPSNI.OP_KEYMGMT, name) != 0;
     }
 

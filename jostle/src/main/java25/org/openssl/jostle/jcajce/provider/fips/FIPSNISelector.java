@@ -41,6 +41,8 @@ import org.openssl.jostle.util.ops.OperationsTestNI;
  */
 public class FIPSNISelector
 {
+    private static boolean pqcServicesInitialized;
+
     public static final OpenSSLFIPSNI OpenSSLFIPSNI;
     public static final MDServiceNI MDServiceNI;
     public static final BlockCipherNI BlockCipherNI;
@@ -62,12 +64,12 @@ public class FIPSNISelector
     // whether to register (probe: fips-c-review/probes/ed_gate_probe.c).
     public static final EDServiceNI EDServiceNI;
 
-    // PQC. Served by the 3.5.x module, absent from 3.1.2 - the NIs are always
-    // constructed; ProvFIPS{MLDSA,MLKEM,SLHDSA} decide whether to register.
-    public static final MLDSAServiceNI MLDSAServiceNI;
-    public static final MLKEMServiceNI MLKEMServiceNI;
-    public static final MLXKEMServiceNI MLXKEMServiceNI;
-    public static final SLHDSAServiceNI SLHDSAServiceNI;
+    // PQC. Served by the 3.5.x module, absent from 3.1.2. These are optional:
+    // the registrar probes the loaded module before referring to each NI.
+    public static volatile MLDSAServiceNI MLDSAServiceNI;
+    public static volatile MLKEMServiceNI MLKEMServiceNI;
+    public static volatile MLXKEMServiceNI MLXKEMServiceNI;
+    public static volatile SLHDSAServiceNI SLHDSAServiceNI;
     public static final KdfNI KdfNI;
     public static final OperationsTestNI OperationsTestNI;
 
@@ -92,10 +94,10 @@ public class FIPSNISelector
             DHServiceNI = new DHServiceFIPSFFI();
             XECServiceNI = new XECServiceFIPSFFI();
             EDServiceNI = new EDServiceFIPSFFI();
-            MLDSAServiceNI = new MLDSAServiceFIPSFFI();
-            MLKEMServiceNI = new MLKEMServiceFIPSFFI();
-            MLXKEMServiceNI = new MLXKEMServiceFIPSFFI();
-            SLHDSAServiceNI = new SLHDSAServiceFIPSFFI();
+            MLDSAServiceNI = null;
+            MLKEMServiceNI = null;
+            MLXKEMServiceNI = null;
+            SLHDSAServiceNI = null;
             KdfNI = new KdfFIPSFFI();
             OperationsTestNI = new OperationsTestFIPSFFI();
         }
@@ -117,12 +119,57 @@ public class FIPSNISelector
             DHServiceNI = new DHServiceFIPSJNI();
             XECServiceNI = new XECServiceFIPSJNI();
             EDServiceNI = new EDServiceFIPSJNI();
-            MLDSAServiceNI = new MLDSAServiceFIPSJNI();
-            MLKEMServiceNI = new MLKEMServiceFIPSJNI();
-            MLXKEMServiceNI = new MLXKEMServiceFIPSJNI();
-            SLHDSAServiceNI = new SLHDSAServiceFIPSJNI();
+            MLDSAServiceNI = null;
+            MLKEMServiceNI = null;
+            MLXKEMServiceNI = null;
+            SLHDSAServiceNI = null;
             KdfNI = new KdfFIPSJNI();
             OperationsTestNI = new OperationsTestFIPSJNI();
         }
+    }
+
+    static synchronized void initializePqcServices()
+    {
+        if (pqcServicesInitialized)
+        {
+            return;
+        }
+
+        if (Loader.isFFI())
+        {
+            MLDSAServiceNI = canFetchKeyMgmt("ML-DSA-65") ? new MLDSAServiceFIPSFFI() : null;
+            MLKEMServiceNI = canFetchKeyMgmt("ML-KEM-768") ? new MLKEMServiceFIPSFFI() : null;
+            MLXKEMServiceNI = canFetchAnyKeyMgmt(
+                    "X25519MLKEM768", "X448MLKEM1024", "SecP256r1MLKEM768", "SecP384r1MLKEM1024")
+                    ? new MLXKEMServiceFIPSFFI() : null;
+            SLHDSAServiceNI = canFetchKeyMgmt("SLH-DSA-SHA2-128S") ? new SLHDSAServiceFIPSFFI() : null;
+        }
+        else
+        {
+            MLDSAServiceNI = canFetchKeyMgmt("ML-DSA-65") ? new MLDSAServiceFIPSJNI() : null;
+            MLKEMServiceNI = canFetchKeyMgmt("ML-KEM-768") ? new MLKEMServiceFIPSJNI() : null;
+            MLXKEMServiceNI = canFetchAnyKeyMgmt(
+                    "X25519MLKEM768", "X448MLKEM1024", "SecP256r1MLKEM768", "SecP384r1MLKEM1024")
+                    ? new MLXKEMServiceFIPSJNI() : null;
+            SLHDSAServiceNI = canFetchKeyMgmt("SLH-DSA-SHA2-128S") ? new SLHDSAServiceFIPSJNI() : null;
+        }
+        pqcServicesInitialized = true;
+    }
+
+    private static boolean canFetchKeyMgmt(String name)
+    {
+        return OpenSSLFIPSNI.canFetch(OpenSSLFIPSNI.OP_KEYMGMT, name) != 0;
+    }
+
+    private static boolean canFetchAnyKeyMgmt(String... names)
+    {
+        for (String name : names)
+        {
+            if (canFetchKeyMgmt(name))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

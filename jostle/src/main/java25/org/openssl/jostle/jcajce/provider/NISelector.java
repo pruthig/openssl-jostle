@@ -81,17 +81,22 @@ import org.openssl.jostle.util.ops.OperationsTestNI;
  */
 public class NISelector
 {
+    private static boolean pqcServicesInitialized;
+
     public static final BlockCipherNI BlockCipherNI;
     public static final CCMCipherNI CCMCipherNI;
     public static final OpenSSLNI OpenSSLNI;
     public static final NativeServiceNI NativeServiceNI;
-    public static final MLDSAServiceNI MLDSAServiceNI;
+    // Optional PQC services. They are null when the linked libcrypto does not
+    // expose the corresponding key-management implementation; the provider
+    // registrars probe the same capability before referring to these fields.
+    public static volatile MLDSAServiceNI MLDSAServiceNI;
     public static final SpecNI SpecNI;
     public static final Asn1Ni Asn1NI;
     public static final OperationsTestNI OperationsTestNI;
-    public static final SLHDSAServiceNI SLHDSAServiceNI;
-    public static final MLKEMServiceNI MLKEMServiceNI;
-    public static final MLXKEMServiceNI MLXKEMServiceNI;
+    public static volatile SLHDSAServiceNI SLHDSAServiceNI;
+    public static volatile MLKEMServiceNI MLKEMServiceNI;
+    public static volatile MLXKEMServiceNI MLXKEMServiceNI;
     public static final KdfNI KdfNI;
 
     // Base-provider only: scrypt / Argon2 are not served by the FIPS module,
@@ -119,13 +124,13 @@ public class NISelector
             CCMCipherNI = new CCMCipherFFI();
             OpenSSLNI = new OpenSSLFFI();
             NativeServiceNI = new NativeServiceFFI();
-            MLDSAServiceNI = new MLDSAServiceFFI();
+            MLDSAServiceNI = null;
             SpecNI = new SpecFFI();
             Asn1NI = new Asn1NIFFI();
             OperationsTestNI = new OperationsTestFFI();
-            SLHDSAServiceNI = new SLHDSAServiceFFI();
-            MLKEMServiceNI = new MLKEMServiceFFI();
-            MLXKEMServiceNI = new MLXKEMServiceFFI();
+            SLHDSAServiceNI = null;
+            MLKEMServiceNI = null;
+            MLXKEMServiceNI = null;
             KdfNI = new KdfNIFFI();
             MemoryHardKdfNI = new MemoryHardKdfNIFFI();
             MDServiceNI = new MDServiceFFI();
@@ -149,13 +154,13 @@ public class NISelector
             CCMCipherNI = new CCMCipherJNI();
             OpenSSLNI = new OpenSSLJNI();
             NativeServiceNI = new NativeServiceJNI();
-            MLDSAServiceNI = new MLDSAServiceJNI();
+            MLDSAServiceNI = null;
             SpecNI = new SpecJNI();
             Asn1NI = new Asn1NiJNI();
             OperationsTestNI = new OperationsTestJNI();
-            SLHDSAServiceNI = new SLHDSAServiceJNI();
-            MLKEMServiceNI = new MLKEMServiceJNI();
-            MLXKEMServiceNI = new MLXKEMServiceJNI();
+            SLHDSAServiceNI = null;
+            MLKEMServiceNI = null;
+            MLXKEMServiceNI = null;
             KdfNI = new KdfNIJNI();
             MemoryHardKdfNI = new MemoryHardKdfNIJNI();
             MDServiceNI = new MDServiceJNI();
@@ -172,5 +177,50 @@ public class NISelector
             RandServiceNI = new RandServiceJNI();
             KSServiceNI = new KSServiceJNI();
         }
+    }
+
+    static synchronized void initializePqcServices()
+    {
+        if (pqcServicesInitialized)
+        {
+            return;
+        }
+
+        if (Loader.isFFI())
+        {
+            MLDSAServiceNI = canFetchKeyMgmt("ML-DSA-65") ? new MLDSAServiceFFI() : null;
+            SLHDSAServiceNI = canFetchKeyMgmt("SLH-DSA-SHA2-128S") ? new SLHDSAServiceFFI() : null;
+            MLKEMServiceNI = canFetchKeyMgmt("ML-KEM-768") ? new MLKEMServiceFFI() : null;
+            MLXKEMServiceNI = canFetchAnyKeyMgmt(
+                    "X25519MLKEM768", "X448MLKEM1024", "SecP256r1MLKEM768", "SecP384r1MLKEM1024")
+                    ? new MLXKEMServiceFFI() : null;
+        }
+        else
+        {
+            MLDSAServiceNI = canFetchKeyMgmt("ML-DSA-65") ? new MLDSAServiceJNI() : null;
+            SLHDSAServiceNI = canFetchKeyMgmt("SLH-DSA-SHA2-128S") ? new SLHDSAServiceJNI() : null;
+            MLKEMServiceNI = canFetchKeyMgmt("ML-KEM-768") ? new MLKEMServiceJNI() : null;
+            MLXKEMServiceNI = canFetchAnyKeyMgmt(
+                    "X25519MLKEM768", "X448MLKEM1024", "SecP256r1MLKEM768", "SecP384r1MLKEM1024")
+                    ? new MLXKEMServiceJNI() : null;
+        }
+        pqcServicesInitialized = true;
+    }
+
+    private static boolean canFetchKeyMgmt(String name)
+    {
+        return OpenSSLNI.canFetch(OpenSSLNI.OP_KEYMGMT, name) != 0;
+    }
+
+    private static boolean canFetchAnyKeyMgmt(String... names)
+    {
+        for (String name : names)
+        {
+            if (canFetchKeyMgmt(name))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
